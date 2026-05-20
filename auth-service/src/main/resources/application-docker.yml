@@ -1,0 +1,26 @@
+# Docker specific configuration
+spring:
+  config:
+    activate:
+      on-profile: docker
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  
+  main:
+    allow-bean-definition-overriding: true
+
+keycloak:
+  server-url: ${KEYCLOAK_SERVER_URL:http://keycloak:8080}
+  realm: ${KEYCLOAK_REALM:enterprise}
+
+auth:
+  cookie:
+    secure: ${COOKIE_SECURE:false}
+
+logging:
+  level:
+    com.enterprise.auth: DEBUG
