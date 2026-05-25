@@ -1,6 +1,7 @@
 package com.enterprise.iam.service;
 
 import com.enterprise.iam.application.dto.*;
+import com.enterprise.iam.config.IamProperties;
 import com.enterprise.iam.domain.entity.Role;
 import com.enterprise.iam.domain.entity.User;
 import com.enterprise.iam.domain.repository.RoleRepository;

@@ -209,3 +209,9 @@ iam-service/
 ## License
 
 Proprietary - Enterprise IAM Solution
+
+
+Keycloak admin connect ntn ( phương thức , xác thực ,..)
+    lưu db admin rồi sync db keycloak
+Keycloak làm author-server : authen với (cerdential) , trả token về , các service khác ủy quyền với oauth2
+common cấu hình ủy quyền tới author-server : extract token get granAuthor lấy dc access resource
