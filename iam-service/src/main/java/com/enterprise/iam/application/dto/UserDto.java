@@ -1,6 +1,5 @@
 package com.enterprise.iam.application.dto;
 
-import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,12 +19,8 @@ public class UserDto {
     
     private String keycloakUserId;
     
-    @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 100, message = "Username must be between 3 and 100 characters")
     private String username;
-    
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
+
     private String email;
     
     private String firstName;

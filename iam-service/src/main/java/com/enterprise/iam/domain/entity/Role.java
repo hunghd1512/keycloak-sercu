@@ -2,11 +2,8 @@ package com.enterprise.iam.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,7 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "name", "clientId"})
 @ToString(exclude = {"users", "permissions", "childRoles", "parentRoles"})
-public class Role {
+public class Role extends BaseEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -72,14 +69,6 @@ public class Role {
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     @Builder.Default
     private Set<User> users = new HashSet<>();
-    
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-    
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private Instant updatedAt;
     
     public enum RoleType {
         REALM,      // Realm-wide roles (SUPER_ADMIN, ADMIN, USER)

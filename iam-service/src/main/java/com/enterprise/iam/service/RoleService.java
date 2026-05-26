@@ -22,8 +22,7 @@ import java.util.stream.Collectors;
 public class RoleService {
     
     private final RoleRepository roleRepository;
-    private final AuditService auditService;
-    
+
     @Transactional(readOnly = true)
     @Cacheable(value = "roles")
     public List<RoleDto> getAllRoles() {

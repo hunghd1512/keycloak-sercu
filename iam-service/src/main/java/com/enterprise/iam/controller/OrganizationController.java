@@ -2,14 +2,13 @@ package com.enterprise.iam.controller;
 
 import com.enterprise.iam.application.dto.*;
 import com.enterprise.iam.service.OrganizationService;
+import com.enterprise.iam.util.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,15 +20,15 @@ import java.util.List;
 public class OrganizationController {
     
     private final OrganizationService organizationService;
+    private final SecurityUtils securityUtils;
     
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<OrganizationDto>> createOrganization(
-            @Valid @RequestBody CreateOrganizationRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody CreateOrganizationRequest request) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         log.info("Creating organization: {} by {}", request.getCode(), actorUsername);
         
@@ -78,11 +77,10 @@ public class OrganizationController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<OrganizationDto>> updateOrganization(
             @PathVariable String orgId,
-            @Valid @RequestBody CreateOrganizationRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody CreateOrganizationRequest request) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         OrganizationDto org = organizationService.updateOrganization(orgId, request, actorId, actorUsername);
         
@@ -91,12 +89,10 @@ public class OrganizationController {
     
     @DeleteMapping("/{orgId}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteOrganization(
-            @PathVariable String orgId,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponse<Void>> deleteOrganization(@PathVariable String orgId) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         organizationService.deleteOrganization(orgId, actorId, actorUsername);
         

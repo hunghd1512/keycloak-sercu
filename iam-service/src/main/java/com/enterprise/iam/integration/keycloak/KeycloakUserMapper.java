@@ -1,6 +1,7 @@
 package com.enterprise.iam.integration.keycloak;
 
 import com.enterprise.iam.application.dto.UserDto;
+import com.enterprise.iam.constants.KeycloakUserConstants;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.experimental.UtilityClass;
 
@@ -13,37 +14,39 @@ public class KeycloakUserMapper {
     public static Map<String, Object> toKeycloakRepresentation(UserDto user) {
         Map<String, Object> representation = new HashMap<>();
         
-        representation.put("username", user.getUsername());
-        representation.put("email", user.getEmail());
-        representation.put("firstName", user.getFirstName());
-        representation.put("lastName", user.getLastName());
-        representation.put("enabled", user.getEnabled() != null ? user.getEnabled() : true);
-        representation.put("emailVerified", user.getEmailVerified() != null ? user.getEmailVerified() : false);
+        representation.put(KeycloakUserConstants.FIELD_USERNAME, user.getUsername());
+        representation.put(KeycloakUserConstants.FIELD_EMAIL, user.getEmail());
+        representation.put(KeycloakUserConstants.FIELD_FIRST_NAME, user.getFirstName());
+        representation.put(KeycloakUserConstants.FIELD_LAST_NAME, user.getLastName());
+        representation.put(KeycloakUserConstants.FIELD_ENABLED, 
+            user.getEnabled() != null ? user.getEnabled() : KeycloakUserConstants.DEFAULT_ENABLED);
+        representation.put(KeycloakUserConstants.FIELD_EMAIL_VERIFIED, 
+            user.getEmailVerified() != null ? user.getEmailVerified() : KeycloakUserConstants.DEFAULT_EMAIL_VERIFIED);
         
         if (user.getDisplayName() != null) {
-            representation.put("displayName", user.getDisplayName());
+            representation.put(KeycloakUserConstants.FIELD_DISPLAY_NAME, user.getDisplayName());
         }
         
         Map<String, List<String>> attributes = new HashMap<>();
         
         if (user.getPhoneNumber() != null) {
-            attributes.put("phone_number", Collections.singletonList(user.getPhoneNumber()));
+            attributes.put(KeycloakUserConstants.ATTR_PHONE_NUMBER, Collections.singletonList(user.getPhoneNumber()));
         }
         
         if (user.getEmployeeId() != null) {
-            attributes.put("employee_id", Collections.singletonList(user.getEmployeeId()));
+            attributes.put(KeycloakUserConstants.ATTR_EMPLOYEE_ID, Collections.singletonList(user.getEmployeeId()));
         }
         
         if (user.getDepartmentId() != null) {
-            attributes.put("department_id", Collections.singletonList(user.getDepartmentId()));
+            attributes.put(KeycloakUserConstants.ATTR_DEPARTMENT_ID, Collections.singletonList(user.getDepartmentId()));
         }
         
         if (user.getTitle() != null) {
-            attributes.put("title", Collections.singletonList(user.getTitle()));
+            attributes.put(KeycloakUserConstants.ATTR_TITLE, Collections.singletonList(user.getTitle()));
         }
         
         if (user.getLocation() != null) {
-            attributes.put("location", Collections.singletonList(user.getLocation()));
+            attributes.put(KeycloakUserConstants.ATTR_LOCATION, Collections.singletonList(user.getLocation()));
         }
         
         if (user.getCustomAttributes() != null && !user.getCustomAttributes().isEmpty()) {
@@ -52,7 +55,7 @@ public class KeycloakUserMapper {
         }
         
         if (!attributes.isEmpty()) {
-            representation.put("attributes", attributes);
+            representation.put(KeycloakUserConstants.FIELD_ATTRIBUTES, attributes);
         }
         
         return representation;
@@ -60,26 +63,26 @@ public class KeycloakUserMapper {
     
     public static UserDto fromKeycloakRepresentation(JsonNode user) {
         return UserDto.builder()
-            .keycloakUserId(getTextValue(user, "id"))
-            .username(getTextValue(user, "username"))
-            .email(getTextValue(user, "email"))
-            .firstName(getTextValue(user, "firstName"))
-            .lastName(getTextValue(user, "lastName"))
-            .displayName(getTextValue(user, "displayName"))
-            .enabled(getBooleanValue(user, "enabled"))
-            .emailVerified(getBooleanValue(user, "emailVerified"))
-            .createdAt(parseTimestamp(user, "createdTimestamp"))
+            .keycloakUserId(getTextValue(user, KeycloakUserConstants.FIELD_ID))
+            .username(getTextValue(user, KeycloakUserConstants.FIELD_USERNAME))
+            .email(getTextValue(user, KeycloakUserConstants.FIELD_EMAIL))
+            .firstName(getTextValue(user, KeycloakUserConstants.FIELD_FIRST_NAME))
+            .lastName(getTextValue(user, KeycloakUserConstants.FIELD_LAST_NAME))
+            .displayName(getTextValue(user, KeycloakUserConstants.FIELD_DISPLAY_NAME))
+            .enabled(getBooleanValue(user, KeycloakUserConstants.FIELD_ENABLED))
+            .emailVerified(getBooleanValue(user, KeycloakUserConstants.FIELD_EMAIL_VERIFIED))
+            .createdAt(parseTimestamp(user, KeycloakUserConstants.FIELD_CREATED_TIMESTAMP))
             .build();
     }
     
     public static UserDto fromKeycloakRepresentation(JsonNode user, Map<String, String> customAttributes) {
         UserDto dto = fromKeycloakRepresentation(user);
         
-        dto.setPhoneNumber(customAttributes.get("phone_number"));
-        dto.setEmployeeId(customAttributes.get("employee_id"));
-        dto.setDepartmentId(customAttributes.get("department_id"));
-        dto.setTitle(customAttributes.get("title"));
-        dto.setLocation(customAttributes.get("location"));
+        dto.setPhoneNumber(customAttributes.get(KeycloakUserConstants.ATTR_PHONE_NUMBER));
+        dto.setEmployeeId(customAttributes.get(KeycloakUserConstants.ATTR_EMPLOYEE_ID));
+        dto.setDepartmentId(customAttributes.get(KeycloakUserConstants.ATTR_DEPARTMENT_ID));
+        dto.setTitle(customAttributes.get(KeycloakUserConstants.ATTR_TITLE));
+        dto.setLocation(customAttributes.get(KeycloakUserConstants.ATTR_LOCATION));
         dto.setCustomAttributes(customAttributes);
         
         return dto;
@@ -88,8 +91,8 @@ public class KeycloakUserMapper {
     public static Map<String, String> extractCustomAttributes(JsonNode user) {
         Map<String, String> attributes = new HashMap<>();
         
-        if (user.has("attributes") && user.get("attributes").isObject()) {
-            user.get("attributes").fields().forEachRemaining(entry -> {
+        if (user.has(KeycloakUserConstants.FIELD_ATTRIBUTES) && user.get(KeycloakUserConstants.FIELD_ATTRIBUTES).isObject()) {
+            user.get(KeycloakUserConstants.FIELD_ATTRIBUTES).fields().forEachRemaining(entry -> {
                 JsonNode value = entry.getValue();
                 if (value.isArray() && value.size() > 0) {
                     attributes.put(entry.getKey(), value.get(0).asText());

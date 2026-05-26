@@ -2,11 +2,8 @@ package com.enterprise.iam.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,7 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "code"})
 @ToString(exclude = {"users", "children", "parent"})
-public class Organization {
+public class Organization extends BaseEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -77,14 +74,6 @@ public class Organization {
                inverseJoinColumns = @JoinColumn(name = "user_id"))
     @Builder.Default
     private Set<User> users = new HashSet<>();
-    
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-    
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private Instant updatedAt;
     
     public enum OrganizationType {
         COMPANY,

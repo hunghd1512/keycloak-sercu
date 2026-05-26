@@ -2,14 +2,13 @@ package com.enterprise.iam.controller;
 
 import com.enterprise.iam.application.dto.*;
 import com.enterprise.iam.service.RoleService;
+import com.enterprise.iam.util.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +21,7 @@ import java.util.Set;
 public class RoleController {
     
     private final RoleService roleService;
+    private final SecurityUtils securityUtils;
     
     @GetMapping
     @PreAuthorize("isAuthenticated()")
@@ -60,12 +60,10 @@ public class RoleController {
     
     @PostMapping
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<RoleDto>> createRole(
-            @Valid @RequestBody RoleDto roleDto,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponse<RoleDto>> createRole(@Valid @RequestBody RoleDto roleDto) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         log.info("Creating role: {} by {}", roleDto.getName(), actorUsername);
         
@@ -79,11 +77,10 @@ public class RoleController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<RoleDto>> updateRole(
             @PathVariable String roleId,
-            @Valid @RequestBody RoleDto roleDto,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody RoleDto roleDto) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         RoleDto role = roleService.updateRole(roleId, roleDto, actorId, actorUsername);
         
@@ -92,12 +89,10 @@ public class RoleController {
     
     @DeleteMapping("/{roleId}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteRole(
-            @PathVariable String roleId,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable String roleId) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         roleService.deleteRole(roleId, actorId, actorUsername);
         
@@ -108,11 +103,10 @@ public class RoleController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<RoleDto>> addChildRole(
             @PathVariable String roleId,
-            @PathVariable String childRoleId,
-            @AuthenticationPrincipal Jwt jwt) {
+            @PathVariable String childRoleId) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         RoleDto role = roleService.addChildRole(roleId, childRoleId, actorId, actorUsername);
         

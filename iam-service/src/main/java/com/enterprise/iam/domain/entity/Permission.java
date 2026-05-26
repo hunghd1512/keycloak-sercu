@@ -2,11 +2,8 @@ package com.enterprise.iam.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -22,7 +19,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "name"})
 @ToString(exclude = {"roles"})
-public class Permission {
+public class Permission extends BaseEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -47,14 +44,6 @@ public class Permission {
     @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
-    
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-    
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private Instant updatedAt;
     
     public String getFullPermission() {
         return resource + ":" + action;

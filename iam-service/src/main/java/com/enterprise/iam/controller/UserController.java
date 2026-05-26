@@ -1,8 +1,10 @@
 package com.enterprise.iam.controller;
 
 import com.enterprise.iam.application.dto.*;
+import com.enterprise.iam.domain.entity.User;
 import com.enterprise.iam.service.UserService;
 import com.enterprise.iam.service.OrganizationService;
+import com.enterprise.iam.util.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +14,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,15 +26,15 @@ public class UserController {
     
     private final UserService userService;
     private final OrganizationService organizationService;
+    private final SecurityUtils securityUtils;
     
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<UserDto>> createUser(
-            @Valid @RequestBody CreateUserRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody CreateUserRequest request) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         log.info("Creating user: {} by {}", request.getUsername(), actorUsername);
         
@@ -115,11 +115,10 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @PathVariable String userId,
-            @Valid @RequestBody UpdateUserRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody UpdateUserRequest request) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         UserDto user = userService.updateUser(userId, request, actorId, actorUsername);
         
@@ -128,12 +127,10 @@ public class UserController {
     
     @PostMapping("/{userId}/disable")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> disableUser(
-            @PathVariable String userId,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponse<Void>> disableUser(@PathVariable String userId) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         userService.disableUser(userId, actorId, actorUsername);
         
@@ -142,12 +139,10 @@ public class UserController {
     
     @PostMapping("/{userId}/enable")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> enableUser(
-            @PathVariable String userId,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponse<Void>> enableUser(@PathVariable String userId) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         userService.enableUser(userId, actorId, actorUsername);
         
@@ -156,12 +151,10 @@ public class UserController {
     
     @DeleteMapping("/{userId}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(
-            @PathVariable String userId,
-            @AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable String userId) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         userService.deleteUser(userId, actorId, actorUsername);
         
@@ -179,19 +172,18 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> assignRoles(
             @PathVariable String userId,
-            @Valid @RequestBody AssignRolesRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody AssignRolesRequest request) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
-        UserDto user = userService.getUserById(userId);
+        User user = userService.getUserEntityById(userId);
         
         List<String> roleNames = request.getRoles().stream()
             .map(AssignRolesRequest.RoleAssignment::getRoleName)
             .toList();
         
-        userService.assignRolesToUser(userService.getUserById(userId), roleNames, actorId, actorUsername);
+        userService.assignRolesToUser(user, roleNames, actorId, actorUsername);
         
         return ResponseEntity.ok(ApiResponse.success(null, "Roles assigned successfully"));
     }
@@ -200,11 +192,10 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_MANAGER', 'SUPER_ADMIN')")
     public ResponseEntity<ApiResponse<Void>> revokeRole(
             @PathVariable String userId,
-            @PathVariable String roleName,
-            @AuthenticationPrincipal Jwt jwt) {
+            @PathVariable String roleName) {
         
-        String actorId = jwt.getSubject();
-        String actorUsername = jwt.getClaimAsString("preferred_username");
+        String actorId = securityUtils.getCurrentUserId();
+        String actorUsername = securityUtils.getCurrentUsername();
         
         userService.revokeRoleFromUser(userId, roleName, actorId, actorUsername);
         

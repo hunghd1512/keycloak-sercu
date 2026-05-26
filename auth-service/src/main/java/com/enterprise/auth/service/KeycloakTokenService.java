@@ -1,6 +1,7 @@
 package com.enterprise.auth.service;
 
 import com.enterprise.auth.config.KeycloakProperties;
+import com.enterprise.auth.constants.OAuth2Constants;
 import com.enterprise.auth.model.KeycloakTokenResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,12 +34,12 @@ public class KeycloakTokenService {
         log.debug("Authenticating user: {}", username);
         
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type", "password");
-        formData.add("client_id", keycloakProperties.getClientId());
-        formData.add("client_secret", keycloakProperties.getClientSecret());
-        formData.add("username", username);
-        formData.add("password", password);
-        formData.add("scope", "openid profile email");
+        formData.add(OAuth2Constants.PARAM_GRANT_TYPE, OAuth2Constants.GRANT_TYPE_PASSWORD);
+        formData.add(OAuth2Constants.PARAM_CLIENT_ID, keycloakProperties.getClientId());
+        formData.add(OAuth2Constants.PARAM_CLIENT_SECRET, keycloakProperties.getClientSecret());
+        formData.add(OAuth2Constants.PARAM_USERNAME, username);
+        formData.add(OAuth2Constants.PARAM_PASSWORD, password);
+        formData.add(OAuth2Constants.PARAM_SCOPE, OAuth2Constants.DEFAULT_SCOPE);
         
         return callTokenEndpoint(formData);
     }
@@ -47,10 +48,10 @@ public class KeycloakTokenService {
         log.debug("Refreshing token");
         
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type", "refresh_token");
-        formData.add("client_id", keycloakProperties.getClientId());
-        formData.add("client_secret", keycloakProperties.getClientSecret());
-        formData.add("refresh_token", refreshToken);
+        formData.add(OAuth2Constants.PARAM_GRANT_TYPE, OAuth2Constants.GRANT_TYPE_REFRESH_TOKEN);
+        formData.add(OAuth2Constants.PARAM_CLIENT_ID, keycloakProperties.getClientId());
+        formData.add(OAuth2Constants.PARAM_CLIENT_SECRET, keycloakProperties.getClientSecret());
+        formData.add(OAuth2Constants.PARAM_REFRESH_TOKEN, refreshToken);
         
         return callTokenEndpoint(formData);
     }
@@ -59,11 +60,11 @@ public class KeycloakTokenService {
         log.debug("Getting client credentials token");
         
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type", "client_credentials");
-        formData.add("client_id", keycloakProperties.getClientId());
-        formData.add("client_secret", keycloakProperties.getClientSecret());
+        formData.add(OAuth2Constants.PARAM_GRANT_TYPE, OAuth2Constants.GRANT_TYPE_CLIENT_CREDENTIALS);
+        formData.add(OAuth2Constants.PARAM_CLIENT_ID, keycloakProperties.getClientId());
+        formData.add(OAuth2Constants.PARAM_CLIENT_SECRET, keycloakProperties.getClientSecret());
         if (scope != null) {
-            formData.add("scope", scope);
+            formData.add(OAuth2Constants.PARAM_SCOPE, scope);
         }
         
         return callTokenEndpoint(formData);
@@ -74,9 +75,9 @@ public class KeycloakTokenService {
         
         try {
             MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-            formData.add("client_id", keycloakProperties.getClientId());
-            formData.add("client_secret", keycloakProperties.getClientSecret());
-            formData.add("token", token);
+            formData.add(OAuth2Constants.PARAM_CLIENT_ID, keycloakProperties.getClientId());
+            formData.add(OAuth2Constants.PARAM_CLIENT_SECRET, keycloakProperties.getClientSecret());
+            formData.add(OAuth2Constants.PARAM_TOKEN, token);
             
             webClient.post()
                 .uri(keycloakProperties.getRevokeEndpoint())
@@ -136,11 +137,10 @@ public class KeycloakTokenService {
     
     public boolean validateToken(String token) {
         try {
-            // Keycloak introspection endpoint
             MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-            formData.add("client_id", keycloakProperties.getClientId());
-            formData.add("client_secret", keycloakProperties.getClientSecret());
-            formData.add("token", token);
+            formData.add(OAuth2Constants.PARAM_CLIENT_ID, keycloakProperties.getClientId());
+            formData.add(OAuth2Constants.PARAM_CLIENT_SECRET, keycloakProperties.getClientSecret());
+            formData.add(OAuth2Constants.PARAM_TOKEN, token);
             
             String response = webClient.post()
                 .uri(keycloakProperties.getServerUrl() + "/realms/" + keycloakProperties.getRealm() 
@@ -165,7 +165,6 @@ public class KeycloakTokenService {
         }
         
         try {
-            // Decode JWT payload (without verification - just parsing)
             String[] parts = idToken.split("\\.");
             if (parts.length >= 2) {
                 String payload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
@@ -230,7 +229,6 @@ public class KeycloakTokenService {
                 .scope(json.has("scope") ? json.get("scope").asText() : null)
                 .build();
             
-            // Parse claims from access_token
             if (json.has("access_token")) {
                 tokenResponse.setClaims(parseTokenClaims(json.get("access_token").asText()));
             }

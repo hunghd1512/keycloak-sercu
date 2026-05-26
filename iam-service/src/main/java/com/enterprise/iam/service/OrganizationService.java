@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class OrganizationService {
     
     private final OrganizationRepository organizationRepository;
-    private final AuditService auditService;
     
     @Transactional
     @CacheEvict(value = {"organizations", "orgTree"}, allEntries = true)
@@ -65,11 +64,7 @@ public class OrganizationService {
         }
         
         org = organizationRepository.save(org);
-        
-        // Audit log
-        auditService.logOrgCreated(actorId, actorUsername, org.getId(), 
-            org.getName(), null, null);
-        
+
         log.info("Organization created successfully: {}", org.getId());
         
         return toOrganizationDto(org);
@@ -181,11 +176,7 @@ public class OrganizationService {
         }
         
         org = organizationRepository.save(org);
-        
-        // Audit log
-        auditService.logOrgUpdated(actorId, actorUsername, org.getId(), 
-            org.getName(), null, null, null);
-        
+
         log.info("Organization updated successfully: {}", orgId);
         
         return toOrganizationDto(org);

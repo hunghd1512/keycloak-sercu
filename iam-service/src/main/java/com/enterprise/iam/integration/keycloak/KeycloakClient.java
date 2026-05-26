@@ -1,6 +1,7 @@
 package com.enterprise.iam.integration.keycloak;
 
 import com.enterprise.iam.config.KeycloakProperties;
+import com.enterprise.iam.constants.OAuth2Constants;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -47,11 +47,11 @@ public class KeycloakClient {
         log.debug("Obtaining admin access token from Keycloak");
         
         MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
-        formData.add("grant_type", "password");
-        formData.add("client_id", keycloakProperties.getAdmin().getClientId());
-        formData.add("client_secret", keycloakProperties.getAdmin().getClientSecret());
-        formData.add("username", keycloakProperties.getAdmin().getUsername());
-        formData.add("password", keycloakProperties.getAdmin().getPassword());
+        formData.add(OAuth2Constants.PARAM_GRANT_TYPE, OAuth2Constants.GRANT_TYPE_PASSWORD);
+        formData.add(OAuth2Constants.PARAM_CLIENT_ID, keycloakProperties.getAdmin().getClientId());
+        formData.add(OAuth2Constants.PARAM_CLIENT_SECRET, keycloakProperties.getAdmin().getClientSecret());
+        formData.add(OAuth2Constants.PARAM_USERNAME, keycloakProperties.getAdmin().getUsername());
+        formData.add(OAuth2Constants.PARAM_PASSWORD, keycloakProperties.getAdmin().getPassword());
         
         try {
             String response = webClient.post()

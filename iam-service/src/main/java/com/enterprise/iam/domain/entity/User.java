@@ -2,8 +2,6 @@ package com.enterprise.iam.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.Instant;
@@ -25,7 +23,7 @@ import java.util.Set;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id", "keycloakUserId"})
 @ToString(exclude = {"roles", "organizations"})
-public class User {
+public class User extends BaseEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -108,20 +106,6 @@ public class User {
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "users")
     @Builder.Default
     private Set<Organization> organizations = new HashSet<>();
-    
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private Instant createdAt;
-    
-    @LastModifiedDate
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-    
-    @Column(name = "created_by")
-    private String createdBy;
-    
-    @Column(name = "updated_by")
-    private String updatedBy;
     
     @Version
     private Long version;
